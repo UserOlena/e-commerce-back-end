@@ -29,7 +29,7 @@ router.get('/:id', async (req, res) => {
     })
 
     if (!result) {
-      res.status(404).json({ message: `The Category corresponding to the provided ID (${req.params.id}) could not be found!`});
+      return res.status(404).json({ message: `The Category corresponding to the provided ID (${req.params.id}) could not be found!`});
     } else {
       res.status(200).json(result);
     }
@@ -53,15 +53,10 @@ router.post('/', async (req, res) => {
 // function updates a Category item in the database based on the ID and new category_name value provided by the client.
 router.put('/:id', async (req, res) => {
   try {
-    const ifExist = await Category.findByPk(req.params.id, {
-      include: [
-        {model: Product}
-      ]
-    })
+    const ifExist = await Category.findByPk(req.params.id)
 
     if (!ifExist) {
-      res.status(404).json({ message: `The Category corresponding to the provided ID (${req.params.id}) could not be found!`});
-      return;
+      return res.status(404).json({ message: `The Category corresponding to the provided ID (${req.params.id}) could not be found!`});
     } 
 
     const result = await Category.update(
@@ -80,6 +75,12 @@ router.put('/:id', async (req, res) => {
 // function removes a Category item from the database based on the ID provided by the client.
 router.delete('/:id', async (req, res) => {
   try {
+    const ifExist = await Category.findByPk(req.params.id)
+
+    if (!ifExist) {
+      return res.status(404).json({ message: `The Category corresponding to the provided ID (${req.params.id}) could not be found!`});
+    } 
+    
     const result = await Category.destroy({
       where: {
         id: req.params.id,

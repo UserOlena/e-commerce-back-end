@@ -14,9 +14,9 @@ router.get('/', async (req, res) => {
     })
 
     if (result.length < 1) {
-      res.sendStatus(400).json({ message: `The Products could not be found!`});
-      return;
+      return res.sendStatus(400).json({ message: `The Products could not be found!`});
     }
+
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json(error);
@@ -35,7 +35,7 @@ router.get('/:id', async (req, res) => {
     })
 
     if (!result) {
-      res.status(404).json({ message: `The Product corresponding to the provided ID (${req.params.id}) could not be found!`});
+      return res.status(404).json({ message: `The Product corresponding to the provided ID (${req.params.id}) could not be found!`});
     } else {
       res.status(200).json(result);
     }
@@ -45,7 +45,7 @@ router.get('/:id', async (req, res) => {
 });
 
 
-// function creates a new Product item in the database using the provided product_name, price, and stock values. It also performs bulk creation of ProductTag records based on the newly created product_id and tag_id values supplied by the client.
+// function creates a new Product item in the database using the provided product_name, price, and stock values. It also performs bulk creation of ProductTag records based on the newly created product_id and tag_id value supplied by the client.
 router.post('/', async (req, res) => {
   Product.create(req.body)
     .then(product => {
@@ -70,9 +70,15 @@ router.post('/', async (req, res) => {
 });
 
 
-// update product
-router.put('/:id', (req, res) => {
-  // update product data
+// function updates a Product item and its associatted tags in the database based on the ID and new Product and TadIds values provided by the client.
+router.put('/:id', async (req, res) => {
+  // find product by id
+  const ifExist = await Product.findByPk(req.params.id);
+  // verify that product with provided ID exists 
+  if (!ifExist) {
+    return res.status(404).json({ message: `The Product corresponding to the provided ID (${req.params.id}) could not be found!` });
+  }
+  // if exists, update the product
   Product.update(req.body, {
     where: {
       id: req.params.id,
@@ -117,10 +123,15 @@ router.put('/:id', (req, res) => {
 });
 
 
-// 
+// function removes a Product item from the database based on the ID provided by the client.
 router.delete('/:id', async (req, res) => {
-  // delete one product by its `id` value
   try {
+    const ifExist = await Product.findByPk(req.params.id);
+
+    if (!ifExist) {
+      return res.status(404).json({ message: `The Product corresponding to the provided ID (${req.params.id}) could not be found!` });
+    }
+
     const result = await Product.destroy({
       where: {
         id: req.params.id
